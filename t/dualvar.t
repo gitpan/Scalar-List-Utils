@@ -1,13 +1,15 @@
+
 BEGIN {
   require Scalar::Util;
-  $|=1;
-  unless ( $List::Util::XS ) {
-    print("1..0\n");
+
+  if (grep { /dualvar/ } @Scalar::Util::EXPORT_FAIL) {
+    print "1..0\n";
     exit;
   }
 }
 
 use Scalar::Util qw(dualvar);
+
 print "1..6\n";
 
 $var = dualvar 2.2,"string";

@@ -2,30 +2,46 @@
 
 use Scalar::Util qw(reftype);
 use vars qw($t $y $x *F);
+use Symbol qw(gensym);
 
-print "1..7\n";
+# Ensure we do not trigger and tied methods
+tie *F, 'MyTie';
 
-print "not " if reftype(1);
-print "ok 1\n";
+@test = (
+ [ undef, 1],
+ [ undef, 'A'],
+ [ HASH => {} ],
+ [ ARRAY => [] ],
+ [ SCALAR => \$t ],
+ [ REF    => \(\$t) ],
+ [ GLOB   => \*F ],
+ [ GLOB   => gensym ],
+ [ CODE   => sub {} ],
+# [ IO => *STDIN{IO} ] the internal sv_reftype returns UNKNOWN
+);
 
-print "not " if reftype('A');
-print "ok 2\n";
+print "1..", @test*4, "\n";
 
-print "not " unless reftype({}) eq 'HASH';
-print "ok 3\n";
+my $i = 1;
+foreach $test (@test) {
+  my($type,$what) = @$test;
+  my $pack;
+  foreach $pack (undef,"ABC","0",undef) {
+    print "# $what\n";
+    my $res = reftype($what);
+    printf "# %s - %s\n", map { defined($_) ? $_ : 'undef' } $type,$res;
+    print "not " if $type ? $res ne $type : defined($res);
+    bless $what, $pack if $type && defined $pack;
+    print "ok ",$i++,"\n";
+  }
+}
 
-print "not " unless reftype([]) eq 'ARRAY';
-print "ok 4\n";
+package MyTie;
 
-$y = \$t;
+sub TIEHANDLE { bless {} }
+sub DESTROY {}
 
-print "not " unless reftype($y) eq 'SCALAR';
-print "ok 5\n";
-
-$x = bless [], "ABC";
-
-print "not " unless reftype($x) eq 'ARRAY';
-print "ok 6\n";
-
-print "not " unless reftype(\*F) eq 'GLOB';
-print "ok 7\n";
+sub AUTOLOAD {
+  warn "$AUTOLOAD called";
+  exit 1; # May be in an eval
+}

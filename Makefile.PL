@@ -1,54 +1,58 @@
 #!/usr/bin/env perl
 
 use ExtUtils::MakeMaker;
+use Config qw(%Config);
 
-$no_xs = grep { $_ eq '-pm' } @ARGV;
-
-if ($no_xs) {
-  @perlonly = (
-    XS => {},
-    C => []
-  );
-  print "\n\n","*"x40,"\n";
-  print "Using perl only implementation\n";
-  print "Some functions will not be avaliable\n";
-  print "*"x40,"\n\n";
+for (@ARGV) {
+  /^-pm/ and $no_xs = 1;
+  /^-xs/ and $no_xs = 0;
 }
 
-mkdir("lib",0777);
-mkdir("lib/List",0777);
-mkdir("lib/Scalar",0777);
-
-foreach $file (qw(List/Util.pm Scalar/Util.pm)) {
-  open(IN, "d/$file") or die "Cannot open d/$file: $!";
-  open(OUT,">lib/$file") or die "Cannot open lib/$file: $!";
-  while(<IN>) {
-    if ($no_xs) {
-      s/^bootstrap/#bootstrap/;
-      s/(require)?\s*DynaLoader\s*;?//;
-      next if ?^__END__?;
-    }
-    print OUT;
+sub init {
+  my $hash = $_[1];
+  if ($no_xs) {
+    @{$hash}{XS,C} = ( {}, [] );
   }
-  reset; # reset ?^__END__?
-  close(IN);
-  close(OUT);
+  $hash;
 }
 
-WriteMakefile(
-	VERSION_FROM	=> "d/List/Util.pm",
-	NAME            => "List::Util",
-	DISTNAME      	=> "Scalar-List-Utils",
-	clean           => { FILES => 'lib/List/Util.pm lib/Scalar/Util.pm' },
-        @perlonly,
-);
-
-sub MY::postamble {
-
-<<'ESQ';
-
-Makefile : d/List/Util.pm d/Scalar/Util.pm
-
-ESQ
-
+sub write_makefile {
+  WriteMakefile(
+    VERSION_FROM    => "lib/List/Util.pm",
+    NAME            => "List::Util",
+    DISTNAME        => "Scalar-List-Utils",
+    CONFIGURE       => \&init,
+    clean           => {FILES => 'test.c'}
+  );
 }
+
+sub no_cc {
+  $no_xs = 1;
+  print <<"EDQ";
+
+ I cannot determine if you have a C compiler
+ so I will install a perl-only implementation
+
+ You can force installation of the XS version with
+
+    perl Makefile.PL -xs
+
+EDQ
+  write_makefile();
+  exit;
+}
+
+write_makefile();
+
+exit if defined $no_xs;
+
+print "Testing if you have a C compiler\n";
+
+open(F,">test.c") or no_cc();
+print F <<EOF;
+int main() { return 0; }
+EOF
+close(F) or no_cc();
+system("make test$Config{obj_ext}") and no_cc();
+
+

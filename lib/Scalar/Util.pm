@@ -1,6 +1,6 @@
 # Scalar::Util.pm
 #
-# Copyright (c) 1997-1999 Graham Barr <gbarr@pobox.com>. All rights reserved.
+# Copyright (c) 1997-2000 Graham Barr <gbarr@pobox.com>. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 
@@ -12,42 +12,63 @@ require List::Util; # List::Util loads the XS
 $VERSION = $VERSION = $List::Util::VERSION;
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(blessed dualvar reftype weaken isweak tainted readonly);
-@EXPORT_FAIL = qw(weaken isweak dualvar) unless $List::Util::XS;
 
 sub export_fail {
   if (grep { /^(weaken|isweak)$/ } @_ ) {
     require Carp;
     Carp::croak("Weak references are not implemented in the version of perl");
   }
+  if (grep { /^dualvar$/ } @_ ) {
+    require Carp;
+    Carp::croak("dualvar is only avaliable with the XS version");
+  }
+  
   @_;
 }
 
-1;
-__END__
+eval <<'ESQ' unless defined &dualvar;
+
+push @EXPORT_FAIL, qw(weaken isweak dualvar);
+
+# The code beyond here is only used if the XS is not installed
 
 # Hope nobody defines a sub by this name
 sub UNIVERSAL::a_sub_not_likely_to_be_here { ref($_[0]) }
 
 sub blessed ($) {
   local($@, $SIG{__DIE__}, $SIG{__WARN__});
-  ref($_[0]) && eval { $_[0]->a_sub_not_likely_to_be_here }
+  length(ref($_[0]))
+    ? eval { $_[0]->a_sub_not_likely_to_be_here }
+    : undef
 }
 
 sub reftype ($) {
   local($@, $SIG{__DIE__}, $SIG{__WARN__});
-  my $t = ref($_[0]);
+  my $r = shift;
+  my $t;
 
-  $t && do {
-    eval { $_[0]->a_sub_not_likely_to_be_here }
-      ? do {
-        ## FIXME: This will not be thread safe
-        bless $_[0]; # may have "" overloaded
-	$x = ("$_[0]" =~ /=(\w+)/)[0];
-        bless $_[0], $t;
-	$x;
-      }
-      : $t
-  }
+  length($t = ref($r)) or return undef;
+
+  # This eval will fail if the reference is not blessed
+  eval { $r->a_sub_not_likely_to_be_here; 1 }
+    ? do {
+      $t = eval {
+	  # we have a GLOB or an IO. Stringify a GLOB gives it's name
+	  my $q = *$r;
+	  $q =~ /^\*/ ? "GLOB" : "IO";
+	}
+	or do {
+	  # OK, if we don't have a GLOB what parts of
+	  # a glob will it populate.
+	  # NOTE: A glob always has a SCALAR
+	  local *glob = $r;
+	  defined *glob{ARRAY} && "ARRAY"
+	  or defined *glob{HASH} && "HASH"
+	  or defined *glob{CODE} && "CODE"
+	  or length(ref(${$r})) ? "REF" : "SCALAR";
+	}
+    }
+    : $t
 }
 
 sub tainted {
@@ -65,6 +86,10 @@ sub readonly {
 
   !eval { $_[0] = $tmp; 1 };
 }
+
+ESQ
+
+1;
 
 __END__
 
@@ -124,7 +149,7 @@ prevent the object being DESTROY-ed at it's usual time.
 
 =head1 COPYRIGHT
 
-Copyright (c) 1997-1999 Graham Barr <gbarr@pobox.com>. All rights reserved.
+Copyright (c) 1997-2000 Graham Barr <gbarr@pobox.com>. All rights reserved.
 This program is free software; you can redistribute it and/or modify it 
 under the same terms as Perl itself.
 

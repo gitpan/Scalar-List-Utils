@@ -2,6 +2,9 @@ ChangeLog
 MANIFEST
 Makefile.PL
 README
+Util.xs
+lib/List/Util.pm
+lib/Scalar/Util.pm
 t/blessed.t
 t/dualvar.t
 t/first.t
@@ -9,12 +12,9 @@ t/max.t
 t/maxstr.t
 t/min.t
 t/minstr.t
-t/reduce.t
-t/sum.t
-t/reftype.t
-t/weak.t
-Util.xs
-d/List/Util.pm
-d/Scalar/Util.pm
 t/readonly.t
+t/reduce.t
+t/reftype.t
+t/sum.t
 t/tainted.t
+t/weak.t

@@ -1,25 +1,27 @@
 # List::Util.pm
 #
-# Copyright (c) 1997-1999 Graham Barr <gbarr@pobox.com>. All rights reserved.
+# Copyright (c) 1997-2000 Graham Barr <gbarr@pobox.com>. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 
 package List::Util;
 
-require DynaLoader;
 require Exporter;
 
-@ISA = qw(Exporter DynaLoader);
+@ISA = qw(Exporter);
 @EXPORT_OK = qw(first min max minstr maxstr reduce sum);
-$VERSION = $VERSION = "1.00";
+$VERSION = $VERSION = "1.01";
 
-$XS = $XS = 0;
+eval {
+  require DynaLoader;
+  local @ISA = qw(DynaLoader);
+  bootstrap List::Util $VERSION;
+  1
+};
 
-bootstrap List::Util $VERSION; $XS = $XS = 1;
+eval <<'ESQ' unless defined &reduce;
 
-1;
-
-__END__
+# This code is only compiled if the XS did not load
 
 use vars qw($a $b);
 
@@ -60,6 +62,9 @@ sub first (&@) {
 
   undef;
 }
+ESQ
+
+1;
 
 __END__
 
@@ -186,9 +191,38 @@ This function could be implemented using C<reduce> like this
 
 =back
 
+=head1 SUGGESTED ADDITIONS
+
+The following are additions that have been requested, but I have been reluctant
+to add due to them being very simple to implement in perl
+
+  # One argument is true
+
+  sub any { $_ && return 1 for @_; 0 }
+
+  # All arguments are true
+
+  sub all { $_ || return 0 for @_; 1 }
+
+  # All arguments are false
+
+  sub none { $_ && return 0 for @_; 1 }
+
+  # One argument is false
+
+  sub notall { $_ || return 1 for @_; 0 }
+
+  # How many elements are true
+
+  sub true { scalar grep { $_ } @_ }
+
+  # How many elements are false
+
+  sub false { scalar grep { !$_ } @_ }
+
 =head1 COPYRIGHT
 
-Copyright (c) 1997-1999 Graham Barr <gbarr@pobox.com>. All rights reserved.
+Copyright (c) 1997-2000 Graham Barr <gbarr@pobox.com>. All rights reserved.
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
