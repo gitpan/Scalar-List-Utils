@@ -10,11 +10,14 @@ require Exporter;
 
 @ISA        = qw(Exporter);
 @EXPORT_OK  = qw(first min max minstr maxstr reduce sum shuffle);
-$VERSION    = "1.09";
+$VERSION    = "1.10";
 $XS_VERSION = $VERSION;
 $VERSION    = eval $VERSION;
 
 eval {
+  # PERL_DL_NONLAZY must be false, or any errors in loading will just
+  # cause the perl code to be tested
+  local $ENV{PERL_DL_NONLAZY} = 0 if $ENV{PERL_DL_NONLAZY};
   require DynaLoader;
   local @ISA = qw(DynaLoader);
   bootstrap List::Util $XS_VERSION;
