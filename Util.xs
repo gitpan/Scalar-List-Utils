@@ -6,9 +6,27 @@
 #include <EXTERN.h>
 #include <perl.h>
 #include <XSUB.h>
-#include <patchlevel.h>
 
-#if PATCHLEVEL < 5
+#ifndef PERL_VERSION
+#    include "patchlevel.h"
+#    define PERL_REVISION	5
+#    define PERL_VERSION	PATCHLEVEL
+#    define PERL_SUBVERSION	SUBVERSION
+#endif
+
+#ifndef aTHX
+#  define aTHX
+#endif
+
+#if PERL_VERSION < 6
+#    define NV double
+#endif
+
+#ifndef Drand01
+#    define Drand01()		((rand() & 0x7FFF) / (double) ((unsigned long)1 << 15))
+#endif
+
+#if PERL_VERSION < 5
 #  ifndef gv_stashpvn
 #    define gv_stashpvn(n,l,c) gv_stashpv(n,c)
 #  endif
@@ -36,7 +54,7 @@ sv_tainted(SV *sv)
 #  define PL_sv_undef sv_undef
 #  define PERL_CONTEXT struct context
 #endif
-#if (PATCHLEVEL < 5) || (PATCHLEVEL == 5 && SUBVERSION <50)
+#if (PERL_VERSION < 5) || (PERL_VERSION == 5 && PERL_SUBVERSION <50)
 #  ifndef PL_tainting
 #    define PL_tainting tainting
 #  endif
@@ -62,7 +80,7 @@ ALIAS:
 CODE:
 {
     int index;
-    double retval;
+    NV retval;
     SV *retsv;
     if(!items) {
 	XSRETURN_UNDEF;
@@ -71,7 +89,7 @@ CODE:
     retval = SvNV(retsv);
     for(index = 1 ; index < items ; index++) {
 	SV *stacksv = ST(index);
-	double val = SvNV(stacksv);
+	NV val = SvNV(stacksv);
 	if(val < retval ? !ix : ix) {
 	    retsv = stacksv;
 	    retval = val;
@@ -83,13 +101,12 @@ CODE:
 
 
 
-double
+NV
 sum(...)
 PROTOTYPE: @
 CODE:
 {
     int index;
-    double ret;
     if(!items) {
 	XSRETURN_UNDEF;
     }
@@ -154,11 +171,15 @@ CODE:
 {
     SV *ret;
     int index;
-    I32 markix;
     GV *agv,*bgv,*gv;
     HV *stash;
     CV *cv;
     OP *reducecop;
+    PERL_CONTEXT *cx;
+    SV** newsp;
+    I32 gimme = G_SCALAR;
+    bool oldcatch = CATCH_GET;
+
     if(items <= 1) {
 	XSRETURN_UNDEF;
     }
@@ -175,15 +196,18 @@ CODE:
     SAVETMPS;
     SAVESPTR(PL_op);
     ret = ST(1);
-    markix = sp - PL_stack_base;
+    CATCH_SET(TRUE);
+    PUSHBLOCK(cx, CXt_SUB, SP);
     for(index = 2 ; index < items ; index++) {
 	GvSV(agv) = ret;
 	GvSV(bgv) = ST(index);
 	PL_op = reducecop;
-	CALLRUNOPS();
+	CALLRUNOPS(aTHX);
 	ret = *PL_stack_sp;
     }
-    ST(0) = ret;
+    ST(0) = sv_mortalcopy(ret);
+    POPBLOCK(cx,PL_curpm);
+    CATCH_SET(oldcatch);
     XSRETURN(1);
 }
 
@@ -193,13 +217,16 @@ first(block,...)
 PROTOTYPE: &@
 CODE:
 {
-    SV *ret;
     int index;
-    I32 markix;
     GV *gv;
     HV *stash;
     CV *cv;
     OP *reducecop;
+    PERL_CONTEXT *cx;
+    SV** newsp;
+    I32 gimme = G_SCALAR;
+    bool oldcatch = CATCH_GET;
+
     if(items <= 1) {
 	XSRETURN_UNDEF;
     }
@@ -212,18 +239,55 @@ CODE:
     PL_curpad = AvARRAY((AV*)AvARRAY(CvPADLIST(cv))[1]);
     SAVETMPS;
     SAVESPTR(PL_op);
-    markix = sp - PL_stack_base;
+    CATCH_SET(TRUE);
+    PUSHBLOCK(cx, CXt_SUB, SP);
     for(index = 1 ; index < items ; index++) {
 	GvSV(PL_defgv) = ST(index);
 	PL_op = reducecop;
-	CALLRUNOPS();
+	CALLRUNOPS(aTHX);
 	if (SvTRUE(*PL_stack_sp)) {
 	  ST(0) = ST(index);
+	  POPBLOCK(cx,PL_curpm);
+	  CATCH_SET(oldcatch);
 	  XSRETURN(1);
 	}
     }
+    POPBLOCK(cx,PL_curpm);
+    CATCH_SET(oldcatch);
     XSRETURN_UNDEF;
 }
+
+void
+shuffle(...)
+PROTOTYPE: @
+CODE:
+{
+    int index;
+    struct op dmy_op;
+    struct op *old_op = PL_op;
+    SV *my_pad[2];
+    SV **old_curpad = PL_curpad;
+
+    /* We call pp_rand here so that Drand01 get initialized if rand()
+       or srand() has not already been called
+    */
+    my_pad[1] = sv_newmortal();
+    memzero((char*)(&dmy_op), sizeof(struct op));
+    dmy_op.op_targ = 1;
+    PL_op = &dmy_op;
+    PL_curpad = (SV **)&my_pad;
+    pp_rand();
+    PL_op = old_op;
+    PL_curpad = old_curpad;
+    for (index = items ; index > 1 ; ) {
+	int swap = (int)(Drand01() * (double)(index--));
+	SV *tmp = ST(swap);
+	ST(swap) = ST(index);
+	ST(index) = tmp;
+    }
+    XSRETURN(items);
+}
+
 
 MODULE=List::Util	PACKAGE=Scalar::Util
 
@@ -237,12 +301,19 @@ CODE:
     STRLEN len;
     char *ptr = SvPV(str,len);
     ST(0) = sv_newmortal();
-    SvUPGRADE(ST(0),SVt_PVNV);
+    (void)SvUPGRADE(ST(0),SVt_PVNV);
     sv_setpvn(ST(0),ptr,len);
-    if(SvNOKp(num) || !SvIOKp(num)) {
+    if(SvNOK(num) || SvPOK(num) || SvMAGICAL(num)) {
 	SvNVX(ST(0)) = SvNV(num);
 	SvNOK_on(ST(0));
     }
+#ifdef SVf_IVisUV
+    else if (SvUOK(num)) {
+	SvUVX(ST(0)) = SvUV(num);
+	SvIOK_on(ST(0));
+	SvIsUV_on(ST(0));
+    }
+#endif
     else {
 	SvIVX(ST(0)) = SvIV(num);
 	SvIOK_on(ST(0));
@@ -295,7 +366,7 @@ CODE:
 	croak("weak references are not implemented in this release of perl");
 #endif
 
-SV *
+void
 isweak(sv)
 	SV *sv
 PROTOTYPE: $
