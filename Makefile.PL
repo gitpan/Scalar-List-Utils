@@ -18,6 +18,7 @@ sub init {
 
 sub write_makefile {
   WriteMakefile(
+    INSTALLDIRS     => ($] >= 5.008 ? 'perl' : 'site'),
     VERSION_FROM    => "lib/List/Util.pm",
     NAME            => "List::Util",
     DISTNAME        => "Scalar-List-Utils",
@@ -76,6 +77,6 @@ print F <<EOF;
 int main() { return 0; }
 EOF
 close(F) or no_cc();
-system("make test$Config{obj_ext}") and no_cc();
+system("$Config{make} test$Config{obj_ext}") and no_cc();
 
 
