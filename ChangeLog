@@ -1,0 +1,41 @@
+Change 273 on 1999/03/21 by <gbarr@pobox.com> (Graham Barr)
+
+	Added weaken and isweak to Ref::Util
+
+Change 272 on 1999/03/21 by <gbarr@pobox.com> (Graham Barr)
+
+	Add new .pm files to repository
+
+Change 271 on 1999/03/21 by <gbarr@pobox.com> (Graham Barr)
+
+	- Split into three packages Ref::Util, List::Util and Scalar::DualVar
+	- readonly and clock were removed in favor of other modules
+
+Change 270 on 1999/03/21 by <gbarr@pobox.com> (Graham Barr)
+
+	Rename package
+
+Change 269 on 1999/03/21 by <gbarr@pobox.com> (Graham Barr)
+
+	- Added reftype
+	- improved reduce by not doing a sub call
+	- reduce now uses $a and $b
+	- now compiles with 5.005_5x
+
+Sun Jul 26 1998 <gbarr@pobox.com> (Graham Barr)
+
+	Modified XS code so it will compile with 5.004 and 5.005
+
+Fri Feb 20 1998 <gbarr@pobox.com> (Graham Barr)
+
+	t/min.t, t/max.t
+	- Change sor to do a numerical sort
+	
+Fri Dec 19 1997 Graham Barr <gbarr@pobox.com>
+	
+	- Added readonly()
+	
+Wed Nov 19 1997 Graham Barr <gbarr@pobox.com>
+	
+	- Initial release
+
