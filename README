@@ -1,4 +1,4 @@
-This distribution is a replacement for the builtin distribution.
+This distribution replaces the (badly named) builtin distribution.
 
 This package contains a selection of subroutines that people have
 expressed would be nice to have in the perl core, but the usage would not
@@ -12,17 +12,32 @@ After unpacking the distribution, to install this module type
         make test
         make install
 
-This distribution provides
 
-  min
-  max
-  minstr
-  maxstr
-  sum
-  reduce
-  reftype
-  blessed
-  weaken   (5.005_57 and later only)
-  isweak   (5.005_57 and later only)
-  dualvar
+This distribution provides the following functions
 
+	min
+	max
+	minstr
+	maxstr
+	sum
+	first
+	reduce
+	blessed
+	reftype
+	weaken (5.005_57 and above only)
+	isweak (5.005_57 and above only)
+	dualvar
+
+If you do not have a C compiler then you can install a perl-only implementation,
+except that the following functions will not be avaliable
+
+  weaken, isweak, dualvar
+
+This can be done with
+
+        perl Makefile.PL -pm
+        make
+        make test
+        make install
+
+Graham Barr <gbarr@pobox.com>

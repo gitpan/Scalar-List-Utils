@@ -1,6 +1,13 @@
+BEGIN {
+  require Scalar::Util;
+  $|=1;
+  unless ( $List::Util::XS ) {
+    print("1..0\n");
+    exit;
+  }
+}
 
-use Scalar::DualVar;
-
+use Scalar::Util qw(dualvar);
 print "1..6\n";
 
 $var = dualvar 2.2,"string";
