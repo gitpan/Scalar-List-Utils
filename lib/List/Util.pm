@@ -10,7 +10,7 @@ require Exporter;
 
 @ISA       = qw(Exporter);
 @EXPORT_OK = qw(first min max minstr maxstr reduce sum shuffle);
-$VERSION   = $VERSION = "1.05";
+$VERSION   = $VERSION = "1.06";
 
 eval {
   require DynaLoader;
@@ -207,6 +207,12 @@ This function could be implemented using C<reduce> like this
     $foo = reduce { $a + $b } 1..10
 
 =back
+
+=head1 KNOWN BUGS
+
+With perl versions prior to 5.005 there are some cases where reduce
+will return an incorrect result. This will show up as test 7 of
+reduce.t failing.
 
 =head1 SUGGESTED ADDITIONS
 
