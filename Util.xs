@@ -103,6 +103,28 @@ sv_tainted(SV *sv)
 #  define PTR2UV(ptr) (UV)(ptr)
 #endif
 
+#ifndef SvUV_set
+#  define SvUV_set(sv, val) (((XPVUV*)SvANY(sv))->xuv_uv = (val))
+#endif
+
+#ifdef HASATTRIBUTE
+#  if (defined(__GNUC__) && defined(__cplusplus)) || defined(__INTEL_COMPILER)
+#    define PERL_UNUSED_DECL
+#  else
+#    define PERL_UNUSED_DECL __attribute__((unused))
+#  endif
+#else
+#  define PERL_UNUSED_DECL
+#endif
+
+#ifndef dNOOP
+#define dNOOP extern int Perl___notused PERL_UNUSED_DECL
+#endif
+
+#ifndef dVAR
+#define dVAR dNOOP
+#endif
+
 MODULE=List::Util	PACKAGE=List::Util
 
 void
@@ -206,6 +228,7 @@ reduce(block,...)
 PROTOTYPE: &@
 CODE:
 {
+    dVAR;
     SV *ret = sv_newmortal();
     int index;
     GV *agv,*bgv,*gv;
@@ -260,6 +283,7 @@ first(block,...)
 PROTOTYPE: &@
 CODE:
 {
+    dVAR;
     int index;
     GV *gv;
     HV *stash;
@@ -290,8 +314,6 @@ CODE:
     CATCH_SET(TRUE);
     PUSHBLOCK(cx, CXt_SUB, SP);
     PUSHSUB(cx);
-    if (!CvDEPTH(cv))
-        (void)SvREFCNT_inc(cv);
 
     for(index = 1 ; index < items ; index++) {
 	GvSV(PL_defgv) = ST(index);
@@ -314,6 +336,7 @@ shuffle(...)
 PROTOTYPE: @
 CODE:
 {
+    dVAR;
     int index;
     struct op dmy_op;
     struct op *old_op = PL_op;
@@ -352,18 +375,18 @@ CODE:
     (void)SvUPGRADE(ST(0),SVt_PVNV);
     sv_setpvn(ST(0),ptr,len);
     if(SvNOK(num) || SvPOK(num) || SvMAGICAL(num)) {
-	SvNVX(ST(0)) = SvNV(num);
+	SvNV_set(ST(0), SvNV(num));
 	SvNOK_on(ST(0));
     }
 #ifdef SVf_IVisUV
     else if (SvUOK(num)) {
-	SvUVX(ST(0)) = SvUV(num);
+	SvUV_set(ST(0), SvUV(num));
 	SvIOK_on(ST(0));
 	SvIsUV_on(ST(0));
     }
 #endif
     else {
-	SvIVX(ST(0)) = SvIV(num);
+	SvIV_set(ST(0), SvIV(num));
 	SvIOK_on(ST(0));
     }
     if(PL_tainting && (SvTAINTED(num) || SvTAINTED(str)))

@@ -1,9 +1,13 @@
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Scalar-List-Utils
-version:      1.14
-version_from: lib/List/Util.pm
-installdirs:  perl
-requires:
-
+name: Scalar-List-Utils
+module_name: List::Util
+version: 1.16
+abstract: Common Scalar and List utility subroutines
+author: Graham Barr <gbarr@cpan.org>
+license: perl
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.12
+requires:
+  perl: 5.004
+no_index:
+  directory:
+    - inc
+generated_by: Module::Install version 0.36
