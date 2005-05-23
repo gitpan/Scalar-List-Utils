@@ -1,6 +1,6 @@
 name: Scalar-List-Utils
 module_name: List::Util
-version: 1.16
+version: 1.17
 abstract: Common Scalar and List utility subroutines
 author: Graham Barr <gbarr@cpan.org>
 license: perl

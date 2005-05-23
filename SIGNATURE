@@ -1,12 +1,12 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.44.
+signed via the Module::Signature module, version 0.38.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
 
     % cpansign -v
 
-It will check each file's integrity, as well as the signature's
+It would check each file's integrity, as well as the signature's
 validity.  If "==> Signature verified OK! <==" is not displayed,
 the distribution may already have been compromised, and you should
 not run its Makefile.PL or Build.PL.
@@ -14,12 +14,12 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 c256b8bf104ec758eb83430b1f38533e2d770cd5 Changes
+SHA1 c600a41afae357789333443dd1d4b3f246b83f29 Changes
 SHA1 5ebd79ee195360496104cf519456450543b39f3d MANIFEST
-SHA1 a951440f1c391d2035b4afb364e933abc5045dbb META.yml
+SHA1 a4b06812af8aea5468be9da0945ad0b9ae305d60 META.yml
 SHA1 e749e9a5f44cf6dae705fe3f8c08c0e0bf157b69 Makefile.PL
 SHA1 10cf50f3fe7892f87f990fe0ecccf324c4117fc4 README
-SHA1 3bd87031348ae7f724b85ecbf0648d2ef5c3ba74 Util.xs
+SHA1 99293310cf30d0e03caf1c14337456af9c3402be Util.xs
 SHA1 70b3a06d728c3812ff0653b92bb6e91b9c39553c inc/Module/Install.pm
 SHA1 00eea093a9eef87a8eb4e90fba31ec1426300c30 inc/Module/Install/Base.pm
 SHA1 770008c5f1f2065ddf116974105c4ef5daeb5b19 inc/Module/Install/Can.pm
@@ -31,8 +31,8 @@ SHA1 de3962cbec3ed5c027dcc82642efe12825fccbac inc/Module/Install/Metadata.pm
 SHA1 e99a3f64ebcc35371e3f7ba10a1d1487231c724b inc/Module/Install/Win32.pm
 SHA1 a485e469ac64908d7e965ae726b6a58682d74d8e inc/Test/Builder.pm
 SHA1 2e86c1ac237e606c365cfde0965bd662c86b6b35 inc/Test/More.pm
-SHA1 7286087df0672f61f444f154fc91ee4913964fd4 lib/List/Util.pm
-SHA1 f472475248aaf9213d7cd7d4eb97a993f675f966 lib/Scalar/Util.pm
+SHA1 f99889edb6986e6822ec9e980c07500b72472042 lib/List/Util.pm
+SHA1 5c36de28ee04bee06f5046f54e0b3aeb29453434 lib/Scalar/Util.pm
 SHA1 0edd9a2a7285afe6549f12c4d71377e28f9845a3 mytypemap
 SHA1 2be0420a308bc1a5d06d9ee4b8ca25d8f55c682f t/00version.t
 SHA1 5add3404aad187e8e9f119c7c3defcb18886143b t/blessed.t
@@ -72,7 +72,7 @@ SHA1 7295a341abaa9d622fcb61936baa459821d2a26b t/weak.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (Darwin)
 
-iD8DBQFCjgQ4R0BL4gbYw3QRAtxtAJ9w47kF4qFAFjkVSJb1oSFRgNK0oQCfXcSc
-jXAVMJKmYaNI6c/rJt8GLdg=
-=WuRr
+iD8DBQFCkeOKR0BL4gbYw3QRAlEdAJ48T1I0Ea6svvZBO/Unclwd5i2SgwCgibt0
+eSgOEHhHjaBqkeE6kZygnUY=
+=dtCN
 -----END PGP SIGNATURE-----
