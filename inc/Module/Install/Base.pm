@@ -1,4 +1,4 @@
-#line 1 "inc/Module/Install/Base.pm - /Users/gbarr/Library/Perl/Module/Install/Base.pm"
+#line 1 "inc/Module/Install/Base.pm - /home/gbarr/perl/Module/Install/Base.pm"
 package Module::Install::Base;
 
 #line 28

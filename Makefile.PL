@@ -36,7 +36,7 @@ sub MY::post_constants {
 
   return <<'POST_CONST';
 
-XSUBPP_EXTRA_ARGS = -typemap mytypemap
+XSUBPPARGS +=  -typemap mytypemap
 
 POST_CONST
 
