@@ -1,4 +1,4 @@
-#line 1 "inc/Module/Install/InstallDirs.pm - /home/gbarr/perl/Module/Install/InstallDirs.pm"
+#line 1
 # Copyright (c) 2003 Graham Barr <gbarr@pobox.com>. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -28,4 +28,4 @@ sub installdirs {
 
 __END__
 
-#line 58
+#line 57
