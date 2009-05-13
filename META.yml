@@ -1,14 +1,22 @@
-abstract: Common Scalar and List utility subroutines
-author: 'Graham Barr <gbarr@cpan.org>'
-distribution_type: module
-generated_by: Module::Install version 0.64
-license: perl
-module_name: List::Util
-name: Scalar-List-Utils
-no_index:
-  directory:
-    - inc
-    - t
+--- #YAML:1.0
+name:               Scalar-List-Utils
+version:            1.20
+abstract:           Common Scalar and List utility subroutines
+author:
+    - Graham Barr <gbarr@cpan.org>
+license:            perl
+distribution_type:  module
+configure_requires:
+    ExtUtils::MakeMaker:  0
 requires:
-  perl: 5.004
-version: 1.19
+    Test::More:  0
+resources:
+    repository:  http://github.com/gbarr/Scalar-List-Utils
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.48
+meta-spec:
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4

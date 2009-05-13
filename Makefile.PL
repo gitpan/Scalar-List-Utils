@@ -1,62 +1,69 @@
 # -*- perl -*-
+BEGIN { require 5.006; } # allow CPAN testers to get the point
+use strict;
+use warnings;
+use Config;
+use File::Spec;
+use ExtUtils::MakeMaker;
+my $PERL_CORE = grep { $_ eq 'PERL_CORE=1' } @ARGV;
 
-use inc::Module::Install;
-
-my $do_xs = can_cc();
+my $do_xs = $PERL_CORE || can_cc();
 
 for (@ARGV) {
   /^-pm/ and $do_xs = 0;
   /^-xs/ and $do_xs = 1;
 }
 
-name		('Scalar-List-Utils');
-module_name	('List::Util');
-abstract	('Common Scalar and List utility subroutines');
-author		('Graham Barr <gbarr@cpan.org>');
-version_from	('lib/List/Util.pm');
-license		('perl');
+WriteMakefile(
+  NAME         => q[List::Util],
+  ABSTRACT     => q[Common Scalar and List utility subroutines],
+  AUTHOR       => q[Graham Barr <gbarr@cpan.org>],
+  DEFINE       => q[-DPERL_EXT],
+  DISTNAME     => q[Scalar-List-Utils],
+  VERSION_FROM => 'lib/List/Util.pm',
 
-makemaker_args	( XS => {}, C => []) unless $do_xs;
-makemaker_args	( DEFINE      => "-DPERL_EXT",);
+  # We go through the ListUtil.xs trickery to foil platforms
+  # that have the feature combination of
+  # (1) static builds
+  # (2) allowing only one object by the same name in the static library
+  # (3) the object name matching being case-blind
+  # This means that we can't have the top-level util.o
+  # and the extension-level Util.o in the same build.
+  # One such platform is the POSIX-BC BS2000 EBCDIC mainframe platform.
+  XS     => {'ListUtil.xs' => 'ListUtil.c'},
+  OBJECT => 'ListUtil$(OBJ_EXT)',
+  ( $PERL_CORE
+    ? ()
+    : (
+      INSTALLDIRS => q[perl],
+      PREREQ_PM   => {'Test::More' => 0,},
+      (eval { ExtUtils::MakeMaker->VERSION(6.31) } ? (LICENSE => 'perl') : ()),
+      ($do_xs ? () : (XS => {}, C => [])),
+      ( eval { ExtUtils::MakeMaker->VERSION(6.46) } ? (
+          META_MERGE => {
+            resources => {    ##
+              repository => 'http://github.com/gbarr/Scalar-List-Utils',
+            },
+          }
+          )
+        : ()
+      ),
+    )
+  ),
+);
 
-installdirs	(qw(Scalar::Util List::Util));
 
-check_nmake();      # check and download nmake.exe for Win32
+sub can_cc {
 
-requires( perl => 5.004);
-include_deps('Test::More');
+    foreach my $cmd (split(/ /, $Config::Config{cc})) {
+        my $_cmd = $cmd;
+        return $_cmd if (-x $_cmd or $_cmd = MM->maybe_command($_cmd));
 
-&Makefile->write;
-&Meta->write;
+        for my $dir ((split /$Config::Config{path_sep}/, $ENV{PATH}), '.') {
+            my $abs = File::Spec->catfile($dir, $_[1]);
+            return $abs if (-x $abs or $abs = MM->maybe_command($abs));
+        }
+    }
 
-## - - - - - - - -
-
-sub MY::post_constants {
-  return '' if $] >= 5.006_01;
-
-  return <<'POST_CONST' if $^O eq 'MSWin32';
-
-XSUBPPARGS = $(XSUBPPARGS) -typemap mytypemap
-
-POST_CONST
-
-  return <<'POST_CONST';
-
-XSUBPPARGS +=  -typemap mytypemap
-
-POST_CONST
-
+    return;
 }
-
-sub MY::postamble {
-  return <<'POSTAMBLE';
-
-mydist : manifest run_cpansign dist
-
-run_cpansign :
-	cpansign -s
-
-POSTAMBLE
-
-}
-

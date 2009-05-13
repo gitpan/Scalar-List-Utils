@@ -1,28 +1,18 @@
 Changes
-inc/Module/Install.pm
-inc/Module/Install/Base.pm
-inc/Module/Install/Can.pm
-inc/Module/Install/Fetch.pm
-inc/Module/Install/Include.pm
-inc/Module/Install/InstallDirs.pm
-inc/Module/Install/Makefile.pm
-inc/Module/Install/Metadata.pm
-inc/Module/Install/Win32.pm
-inc/Test/Builder.pm
-inc/Test/Builder/Module.pm
-inc/Test/More.pm
 lib/List/Util.pm
+lib/List/Util/PP.pm
+lib/List/Util/XS.pm
 lib/Scalar/Util.pm
+lib/Scalar/Util/PP.pm
+ListUtil.xs
 Makefile.PL
 MANIFEST
-META.yml
 multicall.h
-mytypemap
 README
-SIGNATURE
 t/00version.t
 t/blessed.t
 t/dualvar.t
+t/expfail.t
 t/first.t
 t/isvstring.t
 t/lln.t
@@ -31,6 +21,7 @@ t/maxstr.t
 t/min.t
 t/minstr.t
 t/openhan.t
+t/p_00version.t
 t/p_blessed.t
 t/p_first.t
 t/p_lln.t
@@ -52,7 +43,10 @@ t/reduce.t
 t/refaddr.t
 t/reftype.t
 t/shuffle.t
+t/stack-corruption.t
 t/sum.t
 t/tainted.t
 t/weak.t
-Util.xs
+xs_version.PL
+META.yml                                 Module meta-data (added by MakeMaker)
+SIGNATURE                                Public-key signature (added by MakeMaker)
