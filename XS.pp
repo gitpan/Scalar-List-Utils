@@ -1,12 +1,10 @@
 package List::Util::XS;
 use strict;
 use vars qw($VERSION);
-use List::Util;
 
-$VERSION = "1.21";           # FIXUP
-$VERSION = eval $VERSION;    # FIXUP
+$VERSION = undef;
 
-sub _VERSION { # FIXUP
+sub VERSION {
   require Carp;
   Carp::croak("You need to install Scalar-List-Utils with a C compiler to ensure the XS is compiled")
     if defined $_[1];
@@ -25,6 +23,8 @@ List::Util::XS - Indicate if List::Util was compiled with a C compiler
     use List::Util::XS 1.20;
 
 =head1 DESCRIPTION
+
+B<*** This instalation does not have XS installed ***>
 
 C<List::Util::XS> can be used as a dependency to ensure List::Util was
 installed using a C compiler and that the XS version is installed.

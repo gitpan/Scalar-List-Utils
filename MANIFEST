@@ -47,6 +47,6 @@ t/stack-corruption.t
 t/sum.t
 t/tainted.t
 t/weak.t
-xs_version.PL
+XS.pp
 META.yml                                 Module meta-data (added by MakeMaker)
 SIGNATURE                                Public-key signature (added by MakeMaker)
