@@ -14,26 +14,26 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 b4eb6689a17058a930c9877989de090ab827c003 Changes
-SHA1 62fa0b31d96ecc2f7ed2921e865d2fb839428106 ListUtil.xs
-SHA1 288465c607fa60b699a765883a8009f4055f21aa MANIFEST
-SHA1 fc5cb2963ca63f590fa0796899ae9dc0a1c8fde7 META.yml
+SHA1 facaaaed47a04057860c070328463d5c3605eabb Changes
+SHA1 faf2e17869e969c5d27612d3ec5b3d2026b2abbc ListUtil.xs
+SHA1 0f3bae3ec5030a45e73e7eadffd03dd5bc0ea769 MANIFEST
+SHA1 a2a0eda95a627fcb80b27cc65c58ef3d301d8086 META.yml
 SHA1 a776a81ab39fa970ccb3f3229e3638dbd33dc483 Makefile.PL
 SHA1 9ab2ca5f2af3bd41a763382158f2c6bc1ba36f41 README
 SHA1 61f69d6e90bacbcc85be1baa75cc5db11818beac XS.pp
-SHA1 b682b7f5d309984e731d85b1018b52cf47eec9c3 lib/List/Util.pm
-SHA1 a3af86dd16c8e83987f83d8a5f293461eaa2e297 lib/List/Util/PP.pm
-SHA1 09eee2f86cb7e78836947bb89f064d17dfb1b088 lib/List/Util/XS.pm
-SHA1 9527543103055f9f533bd614ed87d64955ab110b lib/Scalar/Util.pm
-SHA1 8c639fefafbd51b708cc55feda4cf563e5c4258c lib/Scalar/Util/PP.pm
+SHA1 f787f6b9871bce8734fdeff01cda2105f2ceabf0 lib/List/Util.pm
+SHA1 e7f20766416700a6673bf5e5d767e2edd42d4248 lib/List/Util/PP.pm
+SHA1 9e17c6c3fd382fc366479f1a418260387717e6ef lib/List/Util/XS.pm
+SHA1 c6e8c1c3e97eebf2f9b96331e693aa0944080725 lib/Scalar/Util.pm
+SHA1 ed50f05c578d481aa55343eb8b3ec7c51eb23933 lib/Scalar/Util/PP.pm
 SHA1 b0fa4782bf655d5d6356b200d3a0375d31b6ec15 multicall.h
 SHA1 7e3ac53646e628df2c5e4bd4783ef08a10c8e195 t/00version.t
 SHA1 5ea6b4cb8a3095fc007e20cb802831affe3cc8ef t/blessed.t
-SHA1 2ebd79ff57241a850957549916d884e9968abbbc t/dualvar.t
+SHA1 a839163d3f96339ee4fd6926d6ba3341af4210b8 t/dualvar.t
 SHA1 ac1038ceaec651d3c8a7a9e3359eb91519cce090 t/expfail.t
-SHA1 55ab8be1b810f350afe8a4e12eb03d67def93f81 t/first.t
+SHA1 d9df7844d53870d57e5991d2bc2397c61a9dbaec t/first.t
 SHA1 8c5cc4ac342118b5251e69060b9fef4027d28eb4 t/isvstring.t
-SHA1 7e2aa811476460ca0064c38ee273e6d9787fab4c t/lln.t
+SHA1 cbbb3a1ab3652f886b93e9f48eca086d0e392975 t/lln.t
 SHA1 8957c8a42a557b4e474afe1effc9d00a451092e8 t/max.t
 SHA1 9dc923c7b6dda504fb6e1cf78e7e2d315e69c3aa t/maxstr.t
 SHA1 e3813e3a977d2bd6d80b9ae2a20b3351b94a897f t/min.t
@@ -54,10 +54,10 @@ SHA1 5b6bcbb5c6c2eb48c6d5fa83bf092dc412c4f12a t/p_refaddr.t
 SHA1 5b6bcbb5c6c2eb48c6d5fa83bf092dc412c4f12a t/p_reftype.t
 SHA1 5b6bcbb5c6c2eb48c6d5fa83bf092dc412c4f12a t/p_shuffle.t
 SHA1 5b6bcbb5c6c2eb48c6d5fa83bf092dc412c4f12a t/p_sum.t
-SHA1 65ac3a14d6b710e87dd8a9ba0d3f50d3ea01857d t/p_tainted.t
+SHA1 0507c8eaa2947985f5a2e7a1530e11f4ddd59302 t/p_tainted.t
 SHA1 7809e3b5c0177599cbc1f22ea00760e0ef0c6b7b t/proto.t
 SHA1 4c8b290754eeeb20f31dc47e1147c6e7a94a6dac t/readonly.t
-SHA1 533187902cbc5330f2ae4cca8e4755350035bc97 t/reduce.t
+SHA1 75b2d63a506ee16bded9d5aabc66b0d58e31c837 t/reduce.t
 SHA1 03944068c5b2ef9fd01b0fa08e7f5323c3a88f4a t/refaddr.t
 SHA1 c92cda39695a2f1bfa2a585cf93cf4e57f0c023b t/reftype.t
 SHA1 841e0a7d5d1d4ad5a4678cabd3af62043d050938 t/shuffle.t
@@ -66,9 +66,9 @@ SHA1 16124ad8aae2cbc5d236bf67e02dd1f461a1f61f t/sum.t
 SHA1 0eea44585f74f033212ae82865366a7cff4b7dfd t/tainted.t
 SHA1 edffd9f72e6233215bba3fe3535e1c37e3245a39 t/weak.t
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (Darwin)
+Version: GnuPG v1.4.10 (Darwin)
 
-iEYEARECAAYFAkoRf+gACgkQR0BL4gbYw3RVcwCcCtEhNASMmYzMTLok+NO42tR/
-mkcAniFFAst3ujOkv1cqJk8k91fPANYc
-=TImz
+iEYEARECAAYFAkr+zOkACgkQR0BL4gbYw3TuoQCfT4TIAlH+OWNvJrCE9WPjYpCD
+NCsAnjEEO+6wQa7n7ycTAugwa4Dy6p5z
+=ROh1
 -----END PGP SIGNATURE-----
