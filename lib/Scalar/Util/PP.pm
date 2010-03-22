@@ -10,13 +10,12 @@ package Scalar::Util::PP;
 
 use strict;
 use warnings;
-use vars qw(@ISA @EXPORT $VERSION $recurse);
 require Exporter;
 use B qw(svref_2object);
 
-@ISA     = qw(Exporter);
-@EXPORT  = qw(blessed reftype tainted readonly refaddr looks_like_number);
-$VERSION = "1.23";
+our @ISA     = qw(Exporter);
+our @EXPORT  = qw(blessed reftype tainted readonly refaddr looks_like_number openhandle);
+our $VERSION = "1.23_01";
 $VERSION = eval $VERSION;
 
 sub blessed ($) {
@@ -98,10 +97,28 @@ sub looks_like_number {
     return overload::Overloaded($_) ? defined(0 + $_) : 0;
   }
   return 1 if (/^[+-]?[0-9]+$/); # is a +/- integer
-  return 1 if (/^([+-]?)(?=[0-9]|\.[0-9])[0-9]*(\.[0-9]*)?([Ee]([+-]?[0-9]+))?$/); # a C float
-  return 1 if ($] >= 5.008 and /^(Inf(inity)?|NaN)$/i) or ($] >= 5.006001 and /^Inf$/i);
+  return 1 if (/^[+-]?(?=[0-9]|\.[0-9])[0-9]*(?:\.[0-9]*)?(?:[Ee](?:[+-]?[0-9]+))?$/); # a C float
+  return 1 if ($] >= 5.008 and /^(?:Inf(?:inity)?|NaN)$/i) or ($] >= 5.006001 and /^Inf$/i);
 
   0;
+}
+
+sub openhandle ($) {
+  my $fh = shift;
+  my $rt = reftype($fh) || '';
+
+  return defined(fileno($fh)) ? $fh : undef
+    if $rt eq 'IO';
+
+  if (reftype(\$fh) eq 'GLOB') { # handle  openhandle(*DATA)
+    $fh = \(my $tmp=$fh);
+  }
+  elsif ($rt ne 'GLOB') {
+    return undef;
+  }
+
+  (tied(*$fh) or defined(fileno($fh)))
+    ? $fh : undef;
 }
 
 
