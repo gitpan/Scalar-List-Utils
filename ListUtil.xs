@@ -13,6 +13,10 @@
 #  include "multicall.h"
 #endif
 
+#ifndef CvISXSUB
+#  define CvISXSUB(cv) CvXSUB(cv)
+#endif
+
 /* Some platforms have strict exports. And before 5.7.3 cxinc (or Perl_cxinc)
    was not exported. Therefore platforms like win32, VMS etc have problems
    so we redefine it here -- GMB
@@ -208,35 +212,52 @@ reduce(block,...)
 PROTOTYPE: &@
 CODE:
 {
-    dMULTICALL;
     SV *ret = sv_newmortal();
     int index;
     GV *agv,*bgv,*gv;
     HV *stash;
-    I32 gimme = G_SCALAR;
     SV **args = &PL_stack_base[ax];
-    CV *cv;
+    CV* cv    = sv_2cv(block, &stash, &gv, 0);
+
+    if (cv == Nullcv) {
+       croak("Not a subroutine reference");
+    }
 
     if(items <= 1) {
 	XSRETURN_UNDEF;
     }
-    cv = sv_2cv(block, &stash, &gv, 0);
-    if (cv == Nullcv) {
-       croak("Not a subroutine reference");
-    }
-    PUSH_MULTICALL(cv);
-    agv = gv_fetchpv("a", TRUE, SVt_PV);
-    bgv = gv_fetchpv("b", TRUE, SVt_PV);
+
+    agv = gv_fetchpv("a", GV_ADD, SVt_PV);
+    bgv = gv_fetchpv("b", GV_ADD, SVt_PV);
     SAVESPTR(GvSV(agv));
     SAVESPTR(GvSV(bgv));
     GvSV(agv) = ret;
     SvSetSV(ret, args[1]);
-    for(index = 2 ; index < items ; index++) {
-	GvSV(bgv) = args[index];
-	MULTICALL;
-	SvSetSV(ret, *PL_stack_sp);
+
+    if(!CvISXSUB(cv)) {
+        dMULTICALL;
+        I32 gimme = G_SCALAR;
+
+        PUSH_MULTICALL(cv);
+        for(index = 2 ; index < items ; index++) {
+            GvSV(bgv) = args[index];
+            MULTICALL;
+            SvSetSV(ret, *PL_stack_sp);
+        }
+        POP_MULTICALL;
     }
-    POP_MULTICALL;
+    else {
+        for(index = 2 ; index < items ; index++) {
+            dSP;
+            GvSV(bgv) = args[index];
+
+            PUSHMARK(SP);
+            call_sv((SV*)cv, G_SCALAR);
+
+            SvSetSV(ret, *PL_stack_sp);
+        }
+    }
+
     ST(0) = ret;
     XSRETURN(1);
 }
@@ -247,34 +268,50 @@ first(block,...)
 PROTOTYPE: &@
 CODE:
 {
-    dMULTICALL;
     int index;
     GV *gv;
     HV *stash;
-    I32 gimme = G_SCALAR;
     SV **args = &PL_stack_base[ax];
-    CV *cv;
+    CV *cv    = sv_2cv(block, &stash, &gv, 0);
+    if (cv == Nullcv) {
+       croak("Not a subroutine reference");
+    }
 
     if(items <= 1) {
 	XSRETURN_UNDEF;
     }
-    cv = sv_2cv(block, &stash, &gv, 0);
-    if (cv == Nullcv) {
-       croak("Not a subroutine reference");
-    }
-    PUSH_MULTICALL(cv);
+
     SAVESPTR(GvSV(PL_defgv));
 
-    for(index = 1 ; index < items ; index++) {
-	GvSV(PL_defgv) = args[index];
-	MULTICALL;
-	if (SvTRUE(*PL_stack_sp)) {
-	  POP_MULTICALL;
-	  ST(0) = ST(index);
-	  XSRETURN(1);
-	}
+    if(!CvISXSUB(cv)) {
+        dMULTICALL;
+        I32 gimme = G_SCALAR;
+        PUSH_MULTICALL(cv);
+
+        for(index = 1 ; index < items ; index++) {
+            GvSV(PL_defgv) = args[index];
+            MULTICALL;
+            if (SvTRUEx(*PL_stack_sp)) {
+                POP_MULTICALL;
+                ST(0) = ST(index);
+                XSRETURN(1);
+            }
+        }
+        POP_MULTICALL;
     }
-    POP_MULTICALL;
+    else {
+        for(index = 1 ; index < items ; index++) {
+            dSP;
+            GvSV(PL_defgv) = args[index];
+
+            PUSHMARK(SP);
+            call_sv((SV*)cv, G_SCALAR);
+            if (SvTRUEx(*PL_stack_sp)) {
+                ST(0) = ST(index);
+                XSRETURN(1);
+            }
+        }
+    }
     XSRETURN_UNDEF;
 }
 
@@ -425,6 +462,7 @@ readonly(sv)
 	SV *sv
 PROTOTYPE: $
 CODE:
+  SvGETMAGIC(sv);
   RETVAL = SvREADONLY(sv);
 OUTPUT:
   RETVAL
@@ -434,6 +472,7 @@ tainted(sv)
 	SV *sv
 PROTOTYPE: $
 CODE:
+  SvGETMAGIC(sv);
   RETVAL = SvTAINTED(sv);
 OUTPUT:
   RETVAL
@@ -444,6 +483,7 @@ isvstring(sv)
 PROTOTYPE: $
 CODE:
 #ifdef SvVOK
+  SvGETMAGIC(sv);
   ST(0) = boolSV(SvVOK(sv));
   XSRETURN(1);
 #else
@@ -456,10 +496,10 @@ looks_like_number(sv)
 PROTOTYPE: $
 CODE:
   SV *tempsv;
+  SvGETMAGIC(sv);
   if (SvAMAGIC(sv) && (tempsv = AMG_CALLun(sv, numer))) {
     sv = tempsv;
   }
-  SvGETMAGIC(sv);
 #if PERL_BCDVERSION < 0x5008005
   if (SvPOK(sv) || SvPOKp(sv)) {
     RETVAL = looks_like_number(sv);
