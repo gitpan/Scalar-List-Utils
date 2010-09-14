@@ -12,28 +12,22 @@ require List::Util; # List::Util loads the XS
 
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(blessed dualvar reftype weaken isweak tainted readonly openhandle refaddr isvstring looks_like_number set_prototype);
-our $VERSION    = "1.23_02";
+our $VERSION    = "1.23_03";
 $VERSION   = eval $VERSION;
 
 our @EXPORT_FAIL;
 
-unless (defined &dualvar) {
-  # Load Pure Perl version if XS not loaded
-  require Scalar::Util::PP;
-  Scalar::Util::PP->import;
-
-  push @EXPORT_FAIL, qw(weaken isweak dualvar isvstring set_prototype);
+unless (defined &weaken) {
+  push @EXPORT_FAIL, qw(weaken);
+}
+unless (defined &isweak) {
+  push @EXPORT_FAIL, qw(isweak isvstring);
+}
+unless (defined &isvstring) {
+  push @EXPORT_FAIL, qw(isvstring);
 }
 
 sub export_fail {
-  if (grep { /dualvar/ } @EXPORT_FAIL) { # no XS loaded
-    my $pat = join("|", @EXPORT_FAIL);
-    if (my ($err) = grep { /^(?:$pat)$/ } @_ ) {
-      require Carp;
-      Carp::croak("$err is only available with the XS version of Scalar::Util");
-    }
-  }
-
   if (grep { /^(?:weaken|isweak)$/ } @_ ) {
     require Carp;
     Carp::croak("Weak references are not implemented in the version of perl");

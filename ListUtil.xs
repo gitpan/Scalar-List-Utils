@@ -31,7 +31,7 @@ static I32
 my_cxinc(pTHX)
 {
     cxstack_max = cxstack_max * 3 / 2;
-    Renew(cxstack, cxstack_max + 1, struct context);      /* XXX should fix CXINC macro */
+    Renew(cxstack, cxstack_max + 1, struct context); /* fencepost bug in older CXINC macros requires +1 here */
     return cxstack_ix + 1;
 }
 #endif
@@ -136,27 +136,34 @@ CODE:
         sv = ST(index);
         if(!magic && SvAMAGIC(sv)){
             magic = TRUE;
-            if (!retsv) {
+            if (!retsv)
                 retsv = TARG;
-                sv_setnv(retsv,retval);
-            }
+            sv_setnv(retsv,retval);
         }
         if (magic) {
             SV* const tmpsv = amagic_call(retsv, sv, add_amg, SvAMAGIC(retsv) ? AMGf_assign : 0);
-            if(tmpsv){
-                retsv = tmpsv;
+            if(tmpsv) {
+                magic = SvAMAGIC(tmpsv);
+                if (!magic) {
+                    retval = slu_sv_value(tmpsv);
+                }
+                else {
+                    retsv = tmpsv;
+                }
             }
             else {
                 /* fall back to default */
-                sv_setnv(retsv, SvNV(retsv) + SvNV(sv));
+                magic = FALSE;
+                retval = SvNV(retsv) + SvNV(sv);
             }
         }
         else {
           retval += slu_sv_value(sv);
         }
     }
-    if (!retsv) {
-        retsv = TARG;
+    if (!magic) {
+        if (!retsv)
+            retsv = TARG;
         sv_setnv(retsv,retval);
     }
     ST(0) = retsv;

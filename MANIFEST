@@ -1,9 +1,7 @@
 Changes
 lib/List/Util.pm
-lib/List/Util/PP.pm
 lib/List/Util/XS.pm
 lib/Scalar/Util.pm
-lib/Scalar/Util/PP.pm
 ListUtil.xs
 Makefile.PL
 MANIFEST			This list of files
@@ -13,7 +11,6 @@ README
 t/00version.t
 t/blessed.t
 t/dualvar.t
-t/expfail.t
 t/first.t
 t/getmagic-once.t
 t/isvstring.t
@@ -23,22 +20,6 @@ t/maxstr.t
 t/min.t
 t/minstr.t
 t/openhan.t
-t/p_00version.t
-t/p_blessed.t
-t/p_first.t
-t/p_lln.t
-t/p_max.t
-t/p_maxstr.t
-t/p_min.t
-t/p_minstr.t
-t/p_openhan.t
-t/p_readonly.t
-t/p_reduce.t
-t/p_refaddr.t
-t/p_reftype.t
-t/p_shuffle.t
-t/p_sum.t
-t/p_tainted.t
 t/proto.t
 t/readonly.t
 t/reduce.t
@@ -49,6 +30,5 @@ t/stack-corruption.t
 t/sum.t
 t/tainted.t
 t/weak.t
-XS.pp
 META.yml                                 Module meta-data (added by MakeMaker)
 SIGNATURE                                Public-key signature (added by MakeMaker)
