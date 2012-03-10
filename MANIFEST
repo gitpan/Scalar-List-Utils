@@ -6,6 +6,7 @@ ListUtil.xs
 Makefile.PL
 MANIFEST			This list of files
 multicall.h
+MYMETA.yml
 ppport.h
 README
 t/00version.t
@@ -31,4 +32,3 @@ t/sum.t
 t/tainted.t
 t/weak.t
 META.yml                                 Module meta-data (added by MakeMaker)
-SIGNATURE                                Public-key signature (added by MakeMaker)
