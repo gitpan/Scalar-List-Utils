@@ -22,4 +22,4 @@ requires:
   Test::More: 0
 resources:
   repository: http://github.com/gbarr/Scalar-List-Utils
-version: 1.23_04
+version: 1.24
