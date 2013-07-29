@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Scalar-List-Utils
-version:            1.27_001
+version:            1.27_002
 abstract:           Common Scalar and List utility subroutines
 author:
     - Graham Barr <gbarr@cpan.org>
