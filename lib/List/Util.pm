@@ -12,8 +12,8 @@ use strict;
 require Exporter;
 
 our @ISA        = qw(Exporter);
-our @EXPORT_OK  = qw(first min max minstr maxstr reduce sum sum0 shuffle);
-our $VERSION    = "1.27";
+our @EXPORT_OK  = qw(first min max minstr maxstr reduce sum sum0 shuffle pairmap pairgrep pairs);
+our $VERSION    = "1.27_001";
 our $XS_VERSION = $VERSION;
 $VERSION    = eval $VERSION;
 
@@ -121,6 +121,48 @@ If the list is empty then C<undef> is returned.
 This function could be implemented using C<reduce> like this
 
     $foo = reduce { $a lt $b ? $a : $b } 'A'..'Z'
+
+=item pairgrep BLOCK KVLIST
+
+Similar to perl's C<grep> keyword, but interprets the given list as an
+even-sized list of pairs. It invokes the BLOCK multiple times, in scalar
+context, with C<$a> and C<$b> set to successive pairs of values from the
+KVLIST.
+
+Returns an even-sized list of those pairs for which the BLOCK returned true
+in list context, or the count of the B<number of pairs> in scalar context.
+(Note, therefore, in scalar context that it returns a number half the size
+of the count of items it would have returned in list context).
+
+    @subset = pairgrep { $a =~ m/^[[:upper:]]+$/ } @kvlist
+
+=item pairmap BLOCK KVLIST
+
+Similar to perl's C<map> keyword, but interprets the given list as an
+even-sized list of pairs. It invokes the BLOCK multiple times, in list
+context, with C<$a> and C<$b> set to successive pairs of values from the
+KVLIST.
+
+Returns the concatenation of all the values returned by the BLOCK in list
+context, or the count of the number of items that would have been returned
+in scalar context.
+
+    @result = pairmap { "The key $a has value $b" } @kvlist
+
+=item pairs KVLIST
+
+A convenient shortcut to operating on even-sized lists of pairs, this
+function returns a list of ARRAY references, each containing two items from
+the given list. It is a more efficient version of
+
+    pairmap { [ $a, $b ] } KVLIST
+
+It is most convenient to use in a C<foreach> loop, for example:
+
+    foreach ( pairs @KVLIST ) {
+       my ( $key, $value ) = @$_;
+       ...
+    }
 
 =item reduce BLOCK LIST
 

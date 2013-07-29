@@ -339,7 +339,159 @@ CODE:
     XSRETURN_UNDEF;
 }
 
+void
+pairgrep(block,...)
+    SV * block
+PROTOTYPE: &@
+PPCODE:
+{
+    GV *agv,*bgv,*gv;
+    HV *stash;
+    SV **args = &PL_stack_base[ax];
+    SV **end_of_args = args + items;
+    CV *cv    = sv_2cv(block, &stash, &gv, 0);
+
+    /* This function never returns more than it consumed in arguments. So we
+     * can build the results "live", behind the arguments
+     */
+    int retcount = 0;
+    SV **ret = args;
+
+    // "shift" the block
+    args++;
+
+    agv = gv_fetchpv("a", GV_ADD, SVt_PV);
+    bgv = gv_fetchpv("b", GV_ADD, SVt_PV);
+    SAVESPTR(GvSV(agv));
+    SAVESPTR(GvSV(bgv));
+
+    {
+	for(; args < end_of_args; args += 2) {
+	    dSP;
+	    SV *a = GvSV(agv) = *args;
+	    SV *b = GvSV(bgv) = args < end_of_args-1 ? *(args+1) : &PL_sv_undef;
+
+	    PUSHMARK(SP);
+	    call_sv((SV*)cv, G_SCALAR);
+
+	    SPAGAIN;
+
+            if (SvTRUEx(*PL_stack_sp)) {
+		if(GIMME_V == G_ARRAY) {
+		    *(ret++) = sv_mortalcopy(a);
+		    *(ret++) = sv_mortalcopy(b);
+		    retcount += 2;
+		}
+		else if(GIMME_V == G_SCALAR)
+		    retcount++;
+	    }
+	}
+    }
+
+    if(GIMME_V == G_ARRAY)
+	XSRETURN(retcount);
+    else if(GIMME_V == G_SCALAR) {
+	ST(0) = newSViv(retcount);
+	XSRETURN(1);
+    }
+}
+
+void
+pairmap(block,...)
+    SV * block
+PROTOTYPE: &@
+PPCODE:
+{
+    GV *agv,*bgv,*gv;
+    HV *stash;
+    SV **args = &PL_stack_base[ax];
+    SV **end_of_args = args + items;
+    CV *cv    = sv_2cv(block, &stash, &gv, 0);
+    int args_saved = 0;
+
+    int retcount = 0;
+    SV **ret = &PL_stack_base[ax];
+
+    // "shift" the block
+    args++;
+
+    agv = gv_fetchpv("a", GV_ADD, SVt_PV);
+    bgv = gv_fetchpv("b", GV_ADD, SVt_PV);
+    SAVESPTR(GvSV(agv));
+    SAVESPTR(GvSV(bgv));
+
+    {
+	for(; args < end_of_args; args += 2) {
+	    dSP;
+	    GvSV(agv) = *args;
+	    GvSV(bgv) = args < end_of_args-1 ? *(args+1) : &PL_sv_undef;
+
+	    PUSHMARK(SP);
+	    int count = call_sv((SV*)cv, G_ARRAY);
+
+	    SPAGAIN;
+
+	    if(count > 2 && !args_saved) {
+		/* We can't return more than 2 results for a given input pair
+		 * without trashing the remaining argmuents on the stack still
+		 * to be processed. So, we'll copy them out to a temporary
+		 * buffer and work from there instead.
+		 * We didn't do this initially because in the common case, most
+		 * code blocks will return only 1 or 2 items so it won't be
+		 * necessary
+		 */
+		int n_args = end_of_args - args;
+		SV **args_copy;
+		Newx(args_copy, n_args, SV *);
+		Copy(args, args_copy, n_args, SV *);
+		SAVEFREEPV(args_copy);
+
+		args = args_copy;
+		end_of_args = args + n_args;
+		args_saved = 1;
+	    }
+
+	    int i;
+	    for(i = 0; i < count; i++)
+		*(ret++) = sv_mortalcopy(SP[i - count + 1]);
+	    retcount += count;
+
+	    PUTBACK;
+	}
+    }
+
+    XSRETURN(retcount);
+}
+
 #endif
+
+void
+pairs(...)
+PROTOTYPE: @
+PPCODE:
+{
+    SV **args = &PL_stack_base[ax];
+    SV **end_of_args = args + items;
+
+    int retcount = 0;
+    SV **ret = &PL_stack_base[ax];
+
+    {
+	for(; args < end_of_args; args += 2) {
+	    SV *a = *args;
+	    SV *b = args < end_of_args-1 ? *(args+1) : &PL_sv_undef;
+
+	    AV *av = newAV();
+	    av_push(av, newSVsv(a));
+	    av_push(av, newSVsv(b));
+
+	    *(ret++) = sv_2mortal(newRV_noinc((SV *)av));
+	    retcount++;
+	}
+    }
+
+    XSRETURN(retcount);
+}
 
 void
 shuffle(...)
