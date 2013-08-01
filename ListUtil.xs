@@ -347,18 +347,13 @@ PPCODE:
 {
     GV *agv,*bgv,*gv;
     HV *stash;
-    SV **args = &PL_stack_base[ax];
-    SV **end_of_args = args + items;
     CV *cv    = sv_2cv(block, &stash, &gv, 0);
 
     /* This function never returns more than it consumed in arguments. So we
      * can build the results "live", behind the arguments
      */
-    int retcount = 0;
-    SV **ret = args;
-
-    // "shift" the block
-    args++;
+    int argi = 1; // "shift" the block
+    int reti = 0;
 
     agv = gv_fetchpv("a", GV_ADD, SVt_PV);
     bgv = gv_fetchpv("b", GV_ADD, SVt_PV);
@@ -366,10 +361,10 @@ PPCODE:
     SAVESPTR(GvSV(bgv));
 
     {
-	for(; args < end_of_args; args += 2) {
+	for(; argi < items; argi += 2) {
 	    dSP;
-	    SV *a = GvSV(agv) = *args;
-	    SV *b = GvSV(bgv) = args < end_of_args-1 ? *(args+1) : &PL_sv_undef;
+	    SV *a = GvSV(agv) = ST(argi);
+	    SV *b = GvSV(bgv) = argi < items-1 ? ST(argi+1) : &PL_sv_undef;
 
 	    PUSHMARK(SP);
 	    call_sv((SV*)cv, G_SCALAR);
@@ -378,20 +373,19 @@ PPCODE:
 
             if (SvTRUEx(*PL_stack_sp)) {
 		if(GIMME_V == G_ARRAY) {
-		    *(ret++) = sv_mortalcopy(a);
-		    *(ret++) = sv_mortalcopy(b);
-		    retcount += 2;
+		    ST(reti++) = sv_mortalcopy(a);
+		    ST(reti++) = sv_mortalcopy(b);
 		}
 		else if(GIMME_V == G_SCALAR)
-		    retcount++;
+		    reti++;
 	    }
 	}
     }
 
     if(GIMME_V == G_ARRAY)
-	XSRETURN(retcount);
+	XSRETURN(reti);
     else if(GIMME_V == G_SCALAR) {
-	ST(0) = newSViv(retcount);
+	ST(0) = newSViv(reti);
 	XSRETURN(1);
     }
 }
@@ -404,16 +398,11 @@ PPCODE:
 {
     GV *agv,*bgv,*gv;
     HV *stash;
-    SV **args = &PL_stack_base[ax];
-    SV **end_of_args = args + items;
     CV *cv    = sv_2cv(block, &stash, &gv, 0);
-    int args_saved = 0;
+    SV **args_copy = NULL;
 
-    int retcount = 0;
-    SV **ret = &PL_stack_base[ax];
-
-    // "shift" the block
-    args++;
+    int argi = 1; // "shift" the block
+    int reti = 0;
 
     agv = gv_fetchpv("a", GV_ADD, SVt_PV);
     bgv = gv_fetchpv("b", GV_ADD, SVt_PV);
@@ -421,17 +410,19 @@ PPCODE:
     SAVESPTR(GvSV(bgv));
 
     {
-	for(; args < end_of_args; args += 2) {
+	for(; argi < items; argi += 2) {
 	    dSP;
-	    GvSV(agv) = *args;
-	    GvSV(bgv) = args < end_of_args-1 ? *(args+1) : &PL_sv_undef;
+	    SV *a = GvSV(agv) = args_copy ? args_copy[argi] : ST(argi);
+	    SV *b = GvSV(bgv) = argi < items-1 ? 
+		(args_copy ? args_copy[argi+1] : ST(argi+1)) :
+		&PL_sv_undef;
 
 	    PUSHMARK(SP);
 	    int count = call_sv((SV*)cv, G_ARRAY);
 
 	    SPAGAIN;
 
-	    if(count > 2 && !args_saved) {
+	    if(count > 2 && !args_copy) {
 		/* We can't return more than 2 results for a given input pair
 		 * without trashing the remaining argmuents on the stack still
 		 * to be processed. So, we'll copy them out to a temporary
@@ -440,27 +431,25 @@ PPCODE:
 		 * code blocks will return only 1 or 2 items so it won't be
 		 * necessary
 		 */
-		int n_args = end_of_args - args;
-		SV **args_copy;
+		int n_args = items - argi;
 		Newx(args_copy, n_args, SV *);
-		Copy(args, args_copy, n_args, SV *);
 		SAVEFREEPV(args_copy);
 
-		args = args_copy;
-		end_of_args = args + n_args;
-		args_saved = 1;
+		Copy(&ST(argi), args_copy, n_args, SV *);
+
+		argi = 0;
+		items = n_args;
 	    }
 
 	    int i;
 	    for(i = 0; i < count; i++)
-		*(ret++) = sv_mortalcopy(SP[i - count + 1]);
-	    retcount += count;
+		ST(reti++) = sv_mortalcopy(SP[i - count + 1]);
 
 	    PUTBACK;
 	}
     }
 
-    XSRETURN(retcount);
+    XSRETURN(reti);
 }
 
 #endif
@@ -470,27 +459,23 @@ pairs(...)
 PROTOTYPE: @
 PPCODE:
 {
-    SV **args = &PL_stack_base[ax];
-    SV **end_of_args = args + items;
-
-    int retcount = 0;
-    SV **ret = &PL_stack_base[ax];
+    int argi = 0;
+    int reti = 0;
 
     {
-	for(; args < end_of_args; args += 2) {
-	    SV *a = *args;
-	    SV *b = args < end_of_args-1 ? *(args+1) : &PL_sv_undef;
+	for(; argi < items; argi += 2) {
+	    SV *a = ST(argi);
+	    SV *b = argi < items-1 ? ST(argi+1) : &PL_sv_undef;
 
 	    AV *av = newAV();
 	    av_push(av, newSVsv(a));
 	    av_push(av, newSVsv(b));
 
-	    *(ret++) = sv_2mortal(newRV_noinc((SV *)av));
-	    retcount++;
+	    ST(reti++) = sv_2mortal(newRV_noinc((SV *)av));
 	}
     }
 
-    XSRETURN(retcount);
+    XSRETURN(reti);
 }
 
 void
@@ -498,22 +483,18 @@ pairkeys(...)
 PROTOTYPE: @
 PPCODE:
 {
-    SV **args = &PL_stack_base[ax];
-    SV **end_of_args = args + items;
-
-    int retcount = 0;
-    SV **ret = &PL_stack_base[ax];
+    int argi = 0;
+    int reti = 0;
 
     {
-	for(; args < end_of_args; args += 2) {
-	    SV *a = *args;
+	for(; argi < items; argi += 2) {
+	    SV *a = ST(argi);
 
-	    *(ret++) = sv_2mortal(newSVsv(a));
-	    retcount++;
+	    ST(reti++) = sv_2mortal(newSVsv(a));
 	}
     }
 
-    XSRETURN(retcount);
+    XSRETURN(reti);
 }
 
 void
@@ -521,22 +502,18 @@ pairvalues(...)
 PROTOTYPE: @
 PPCODE:
 {
-    SV **args = &PL_stack_base[ax];
-    SV **end_of_args = args + items;
-
-    int retcount = 0;
-    SV **ret = &PL_stack_base[ax];
+    int argi = 0;
+    int reti = 0;
 
     {
-	for(; args < end_of_args; args += 2) {
-	    SV *b = args < end_of_args-1 ? *(args+1) : &PL_sv_undef;
+	for(; argi < items; argi += 2) {
+	    SV *b = argi < items-1 ? ST(argi+1) : &PL_sv_undef;
 
-	    *(ret++) = sv_2mortal(newSVsv(b));
-	    retcount++;
+	    ST(reti++) = sv_2mortal(newSVsv(b));
 	}
     }
 
-    XSRETURN(retcount);
+    XSRETURN(reti);
 }
 
 void
