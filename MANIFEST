@@ -11,6 +11,7 @@ MYMETA.yml
 ppport.h
 README
 t/00version.t
+t/any-all.t
 t/blessed.t
 t/dualvar.t
 t/first.t
@@ -35,4 +36,5 @@ t/sum.t
 t/sum0.t
 t/tainted.t
 t/weak.t
-META.yml                                 Module meta-data (added by MakeMaker)
+META.yml                                 Module YAML meta-data (added by MakeMaker)
+META.json                                Module JSON meta-data (added by MakeMaker)
