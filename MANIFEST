@@ -33,6 +33,7 @@ t/refaddr.t
 t/reftype.t
 t/shuffle.t
 t/stack-corruption.t
+t/subname.t
 t/sum.t
 t/sum0.t
 t/tainted.t
