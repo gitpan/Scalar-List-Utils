@@ -1093,33 +1093,62 @@ OUTPUT:
     RETVAL
 
 void
-set_prototype(subref, proto)
-    SV *subref
-    SV *proto
-PROTOTYPE: &$
+openhandle(SV *sv)
+PROTOTYPE: $
 CODE:
 {
-    SvGETMAGIC(subref);
-    if(SvROK(subref)) {
-        SV *sv = SvRV(subref);
-        if(SvTYPE(sv) != SVt_PVCV) {
-            /* not a subroutine reference */
-            croak("set_prototype: not a subroutine reference");
+    IO *io = NULL;
+    SvGETMAGIC(sv);
+    if(SvROK(sv)){
+        /* deref first */
+        sv = SvRV(sv);
+    }
+
+    /* must be GLOB or IO */
+    if(isGV(sv)){
+        io = GvIO((GV*)sv);
+    }
+    else if(SvTYPE(sv) == SVt_PVIO){
+        io = (IO*)sv;
+    }
+
+    if(io){
+        /* real or tied filehandle? */
+        if(IoIFP(io) || SvTIED_mg((SV*)io, PERL_MAGIC_tiedscalar)){
+            XSRETURN(1);
         }
-        if(SvPOK(proto)) {
-            /* set the prototype */
-            sv_copypv(sv, proto);
-        }
-        else {
-            /* delete the prototype */
-            SvPOK_off(sv);
-        }
+    }
+    XSRETURN_UNDEF;
+}
+
+MODULE=List::Util       PACKAGE=Sub::Util
+
+void
+set_prototype(proto, code)
+    SV *proto
+    SV *code
+PREINIT:
+    SV *cv; /* not CV * */
+PPCODE:
+    SvGETMAGIC(code);
+    if(!SvROK(code))
+        croak("set_prototype: not a reference");
+
+    cv = SvRV(code);
+    if(SvTYPE(cv) != SVt_PVCV)
+        croak("set_prototype: not a subroutine reference");
+
+    if(SvPOK(proto)) {
+        /* set the prototype */
+        sv_copypv(cv, proto);
     }
     else {
-        croak("set_prototype: not a reference");
+        /* delete the prototype */
+        SvPOK_off(cv);
     }
+
+    PUSHs(code);
     XSRETURN(1);
-}
 
 void
 set_subname(name, sub)
@@ -1247,35 +1276,6 @@ PPCODE:
 
     mPUSHs(newSVpvf("%s::%s", HvNAME(GvSTASH(gv)), GvNAME(gv)));
     XSRETURN(1);
-
-void
-openhandle(SV *sv)
-PROTOTYPE: $
-CODE:
-{
-    IO *io = NULL;
-    SvGETMAGIC(sv);
-    if(SvROK(sv)){
-        /* deref first */
-        sv = SvRV(sv);
-    }
-
-    /* must be GLOB or IO */
-    if(isGV(sv)){
-        io = GvIO((GV*)sv);
-    }
-    else if(SvTYPE(sv) == SVt_PVIO){
-        io = (IO*)sv;
-    }
-
-    if(io){
-        /* real or tied filehandle? */
-        if(IoIFP(io) || SvTIED_mg((SV*)io, PERL_MAGIC_tiedscalar)){
-            XSRETURN(1);
-        }
-    }
-    XSRETURN_UNDEF;
-}
 
 BOOT:
 {
