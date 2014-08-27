@@ -16,7 +16,7 @@ our @EXPORT_OK = qw(
   subname set_subname
 );
 
-our $VERSION    = "1.39_003";
+our $VERSION    = "1.39_004";
 $VERSION   = eval $VERSION;
 
 =head1 NAME
@@ -43,14 +43,14 @@ that its popularity warrants inclusion in a core module, which this is.
 
 =cut
 
-=head2 $code = set_prototype( $prototype, $code )
+=head2 set_prototype
+
+    my $code = set_prototype $prototype, $code;
 
 I<Since version 1.39_002.>
 
 Sets the prototype of the function given by the C<$code> reference, or deletes
 it if C<$prototype> is C<undef>. Returns the C<$code> reference itself.
-
-    my $code = set_prototype '$$' => sub { ... };
 
 I<Caution>: This function takes arguments in a different order to the previous
 copy of the code from C<Scalar::Util>. This is to match the order of
@@ -66,14 +66,16 @@ C<Sub::Util::set_*> functions as might become available, such as:
 
 =cut
 
-=head2 $name = subname( $code )
+=head2 subname
+
+    my $name = subname( $code )
 
 I<Since version 1.39_002.>
 
 Returns the name of the given C<$code> reference, if it has one. Normal named
 subs will give a fully-qualified name consisting of the package and the
 localname separated by C<::>. Anonymous code references will give C<__ANON__>
-as the localname. If a name has been set using C<set_subname>, this name will
+as the localname. If a name has been set using L</set_subname>, this name will
 be returned instead.
 
 This function was inspired by C<sub_fullname> from L<Sub::Identify>. The
@@ -86,19 +88,19 @@ using regexp operations, such as
 
 I<Users of Sub::Name beware>: This function is B<not> the same as
 C<Sub::Name::subname>; it returns the existing name of the sub rather than
-changing it. To set or change a name, see instead C<set_subname>.
+changing it. To set or change a name, see instead L</set_subname>.
 
 =cut
 
-=head2 $code = set_subname( $name, $code )
+=head2 set_subname
+
+    my $code = set_subname $name, $code;
 
 I<Since version 1.39_002.>
 
 Sets the name of the function given by the C<$code> reference. Returns the
 C<$code> reference itself. If the C<$name> is unqualified, the package of the
 caller is used to qualify it.
-
-    my $code = set_subname do_thing => sub { ... };
 
 This is useful for applying names to anonymous CODE references so that stack
 traces and similar situations, to give a useful name rather than having the
@@ -121,7 +123,7 @@ convention of this module.
 The general structure of this module was written by Paul Evans
 <leonerd@leonerd.org.uk>.
 
-The XS implementation of C<set_subname> was copied from L<Sub::Name> by
+The XS implementation of L</set_subname> was copied from L<Sub::Name> by
 Matthijs van Duin <xmath@cpan.org>
 
 =cut
