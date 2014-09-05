@@ -321,7 +321,7 @@ CODE:
     SAVESPTR(GvSV(agv));
     SAVESPTR(GvSV(bgv));
     GvSV(agv) = ret;
-    SvSetSV(ret, args[1]);
+    SvSetMagicSV(ret, args[1]);
 #ifdef dMULTICALL
     if(!CvISXSUB(cv)) {
         dMULTICALL;
@@ -331,7 +331,7 @@ CODE:
         for(index = 2 ; index < items ; index++) {
             GvSV(bgv) = args[index];
             MULTICALL;
-            SvSetSV(ret, *PL_stack_sp);
+            SvSetMagicSV(ret, *PL_stack_sp);
         }
 #  ifdef PERL_HAS_BAD_MULTICALL_REFCOUNT
         if(CvDEPTH(multicall_cv) > 1)
@@ -349,7 +349,7 @@ CODE:
             PUSHMARK(SP);
             call_sv((SV*)cv, G_SCALAR);
 
-            SvSetSV(ret, *PL_stack_sp);
+            SvSetMagicSV(ret, *PL_stack_sp);
         }
     }
 
@@ -1196,22 +1196,24 @@ PPCODE:
     if (PL_DBsub && CvGV(cv)) {
         HV *hv = GvHV(PL_DBsub);
 
-        char* new_pkg = HvNAME(stash);
+        char *new_pkg = HvNAME(stash);
 
-        char* old_name = GvNAME( CvGV(cv) );
-        char* old_pkg = HvNAME( GvSTASH(CvGV(cv)) );
+        char *old_name = GvNAME( CvGV(cv) );
+        char *old_pkg = HvNAME( GvSTASH(CvGV(cv)) );
 
         int old_len = strlen(old_name) + strlen(old_pkg);
         int new_len = strlen(name) + strlen(new_pkg);
 
-        char* full_name;
+        SV **old_data;
+        char *full_name;
+
         Newxz(full_name, (old_len > new_len ? old_len : new_len) + 3, char);
 
         strcat(full_name, old_pkg);
         strcat(full_name, "::");
         strcat(full_name, old_name);
 
-        SV** old_data = hv_fetch(hv, full_name, strlen(full_name), 0);
+        old_data = hv_fetch(hv, full_name, strlen(full_name), 0);
 
         if (old_data) {
             strcpy(full_name, new_pkg);

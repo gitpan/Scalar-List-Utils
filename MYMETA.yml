@@ -21,4 +21,4 @@ requires:
   Test::More: '0'
 resources:
   repository: https://github.com/Scalar-List-Utils/Scalar-List-Utils
-version: '1.40'
+version: '1.41'
